@@ -1,0 +1,7 @@
+# Server configuration
+server:
+  host: "localhost"
+  port: 8002
+# Config options for prover
+prover:
+  circuitsBasePath: "circuits"

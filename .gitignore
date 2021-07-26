@@ -1,0 +1,8 @@
+*.exe
+/prover
+!build/.gitkeep
+build/
+circuits
+#Editors
+.idea
+.vscode

@@ -1,0 +1,23 @@
+package proof
+
+import (
+	"github.com/stretchr/testify/require"
+	"testing"
+
+	"github.com/sirupsen/logrus"
+)
+
+func TestGenerateZkProof(t *testing.T) {
+
+	inputs := make(ZKInputs)
+	inputs["id"] = "450635752957408502492855651674268078526329610083210977801191048684985450496"
+	inputs["oldIdState"] = "482116994898767957400787697627877636446788139200313483248425845921644266294"
+	inputs["userPrivateKey"] = "3763977095812051088167772220051106561184331887110434961791308312088863483600"
+	inputs["siblings"] = []string{"0", "0", "0", "0"}
+	inputs["claimsTreeRoot"] = "13189188080149745232162042181866140275028375255284440588258643192392886145981"
+	inputs["newIdState"] = "21312325555249220150049206261161926088722070403906121353903692497330223114979"
+
+	proof, err := GenerateZkProof("circuits/idState", inputs)
+	require.Empty(t, err)
+	logrus.Infoln(proof)
+}

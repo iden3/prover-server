@@ -47,6 +47,7 @@ func (s *Handlers) Routes() chi.Router {
 		// identity routes, require auth and admin users only
 		api.Route("/proof", func(rr chi.Router) {
 			rr.Post("/generate", s.ZKHandler.GenerateProof)
+			rr.Post("/verify", s.ZKHandler.VerifyProof)
 		})
 
 	})

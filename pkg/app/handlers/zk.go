@@ -56,7 +56,7 @@ func (h *ZKHandler) GenerateProof(w http.ResponseWriter, r *http.Request) {
 	zkProofOut, err := proof.GenerateZkProof(circuitPath, req.Inputs)
 
 	if err != nil {
-		rest.ErrorJSON(w, r, http.StatusInternalServerError, err, "can't generate identifier", 0)
+		rest.ErrorJSON(w, r, http.StatusInternalServerError, err, "can't generate proof", 0)
 		return
 	}
 
@@ -93,7 +93,7 @@ func getValidatedCircuitPath(circuitBasePath string, circuitName string) (circui
 	// TODO: validate circuitName for illegal characters, etc
 
 	circuitPath = circuitBasePath + "/" + circuitName
-	log.Debugf("circuitPath: %s\n", filepath.Clean(circuitPath))
+	log.Debugf("circuitPath: %s \n", filepath.Clean(circuitPath))
 
 	if filepath.Clean(circuitPath) != circuitPath {
 		return "", fmt.Errorf("illegal circuitPath")

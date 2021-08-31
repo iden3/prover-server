@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"github.com/iden3/go-circom-prover-verifier/parsers"
 	zktypes "github.com/iden3/go-circom-prover-verifier/types"
@@ -105,7 +106,9 @@ func GenerateZkProof(circuitPath string, inputs ZKInputs) (*zkutils.ZkProofOut, 
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to verify proof")
 	}
-
+	if !strings.Contains(string(verifyOut), "OK!") {
+		return nil, errors.New("invalid proof")
+	}
 	var proof *zktypes.Proof
 	var pubSignals []*big.Int
 
@@ -115,7 +118,7 @@ func GenerateZkProof(circuitPath string, inputs ZKInputs) (*zkutils.ZkProofOut, 
 		return nil, errors.Wrap(err, "failed to read generated public signals")
 	}
 
-	fmt.Println(string(publicJSON))
+	//fmt.Println(string(publicJSON))
 
 	pubSignals, err = parsers.ParsePublicSignals(publicJSON)
 	if err != nil {
@@ -127,7 +130,7 @@ func GenerateZkProof(circuitPath string, inputs ZKInputs) (*zkutils.ZkProofOut, 
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to read generated proof")
 	}
-	fmt.Println(string(proofJSON))
+	//fmt.Println(string(proofJSON))
 
 	proof, err = parsers.ParseProof(proofJSON)
 	if err != nil {
@@ -163,8 +166,13 @@ func VerifyZkProof(circuitPath string, zkp *zkutils.ZkProofOut) error {
 		return errors.Wrap(err, "failed to serialize proof into json")
 	}
 
+	var pubSignals []string
+	for _, ps := range zkp.PubSignals {
+		pubSignals = append(pubSignals, ps.String())
+	}
+
 	// serialize public signals into json
-	publicJSON, err := json.Marshal(zkp.PubSignals)
+	publicJSON, err := json.Marshal(pubSignals)
 	if err != nil {
 		return errors.Wrap(err, "failed to serialize public signals into json")
 	}
@@ -196,6 +204,9 @@ func VerifyZkProof(circuitPath string, zkp *zkutils.ZkProofOut) error {
 	fmt.Println(string(verifyOut))
 	if err != nil {
 		return errors.Wrap(err, "failed to verify proof")
+	}
+	if !strings.Contains(string(verifyOut), "OK!") {
+		return errors.New("invalid proof")
 	}
 
 	return nil

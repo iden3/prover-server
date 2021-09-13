@@ -39,6 +39,8 @@ RUN rm rm -rf /var/lib/apt/lists/*
 
 USER app:app
 
+ENV NPM_CONFIG_PREFIX=/app/node/.npm-global
+
 RUN node -v
 RUN npm -v
 

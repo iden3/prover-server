@@ -19,7 +19,7 @@ RUN go mod download
 COPY ./cmd ./cmd
 COPY ./pkg ./pkg
 
-RUN go build -o ./prover ./cmd/prover/prover.go
+RUN CGO_ENABLED=0 go build -o ./prover ./cmd/prover/prover.go
 
 
 # Build an prover image

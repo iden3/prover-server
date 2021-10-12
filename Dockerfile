@@ -47,6 +47,8 @@ RUN npm -v
 RUN npm install -g circom@latest
 RUN npm install -g snarkjs@latest
 
+RUN export PATH=$PATH:/app/node/.npm-global/bin/
+
 COPY ./configs      /app/configs
 COPY ./circuits     /app/circuits
 COPY --from=base /build/prover /app/prover

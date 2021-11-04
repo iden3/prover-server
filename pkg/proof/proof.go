@@ -3,13 +3,14 @@ package proof
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/pkg/errors"
 	"io/ioutil"
 	"math/big"
 	"os"
 	"os/exec"
-	"path/filepath"
+	"path"
 	"strings"
+
+	"github.com/pkg/errors"
 
 	"github.com/iden3/go-circom-prover-verifier/parsers"
 	zktypes "github.com/iden3/go-circom-prover-verifier/types"
@@ -20,7 +21,7 @@ type ZKInputs map[string]interface{}
 
 func GenerateZkProof(circuitPath string, inputs ZKInputs) (*zkutils.ZkProofOut, error) {
 
-	if filepath.Clean(circuitPath) != circuitPath {
+	if path.Clean(circuitPath) != circuitPath {
 		return nil, fmt.Errorf("illegal circuitPath")
 	}
 
@@ -142,7 +143,7 @@ func GenerateZkProof(circuitPath string, inputs ZKInputs) (*zkutils.ZkProofOut, 
 
 func VerifyZkProof(circuitPath string, zkp *zkutils.ZkProofOut) error {
 
-	if filepath.Clean(circuitPath) != circuitPath {
+	if path.Clean(circuitPath) != circuitPath {
 		return fmt.Errorf("illegal circuitPath")
 	}
 

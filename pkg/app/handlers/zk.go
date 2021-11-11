@@ -2,14 +2,15 @@ package handlers
 
 import (
 	"fmt"
+	"net/http"
+	"os"
+	"path"
+
 	"github.com/go-chi/render"
 	"github.com/iden3/prover-server/pkg/app/configs"
 	"github.com/iden3/prover-server/pkg/app/rest"
 	"github.com/iden3/prover-server/pkg/proof"
 	log "github.com/sirupsen/logrus"
-	"net/http"
-	"os"
-	"path/filepath"
 )
 
 // ZKHandler is handler for zkp operations
@@ -97,9 +98,9 @@ func getValidatedCircuitPath(circuitBasePath, circuitName string) (circuitPath s
 	// TODO: validate circuitName for illegal characters, etc
 
 	circuitPath = circuitBasePath + "/" + circuitName
-	log.Debugf("circuitPath: %s\n", filepath.Clean(circuitPath))
+	log.Debugf("circuitPath: %s\n", path.Clean(circuitPath))
 
-	if filepath.Clean(circuitPath) != circuitPath {
+	if path.Clean(circuitPath) != circuitPath {
 		return "", fmt.Errorf("illegal circuitPath")
 	}
 

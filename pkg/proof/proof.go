@@ -3,12 +3,12 @@ package proof
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/pkg/errors"
 	"io/ioutil"
 	"os"
 	"os/exec"
-	"path/filepath"
+	"path"
 	"strings"
+	"github.com/pkg/errors"
 )
 
 // ZKInputs are inputs for proof generation
@@ -31,7 +31,7 @@ type FullProof struct {
 // GenerateZkProof executes snarkjs groth16prove function and returns proof only if it's valid
 func GenerateZkProof(circuitPath string, inputs ZKInputs) (*FullProof, error) {
 
-	if filepath.Clean(circuitPath) != circuitPath {
+	if path.Clean(circuitPath) != circuitPath {
 		return nil, fmt.Errorf("illegal circuitPath")
 	}
 
@@ -149,7 +149,7 @@ func GenerateZkProof(circuitPath string, inputs ZKInputs) (*FullProof, error) {
 // VerifyZkProof executes snarkjs verify function and returns if proof is valid
 func VerifyZkProof(circuitPath string, zkp *FullProof) error {
 
-	if filepath.Clean(circuitPath) != circuitPath {
+	if path.Clean(circuitPath) != circuitPath {
 		return fmt.Errorf("illegal circuitPath")
 	}
 

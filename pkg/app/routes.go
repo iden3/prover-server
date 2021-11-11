@@ -1,9 +1,10 @@
 package app
 
 import (
-	"net/http"
-
 	"github.com/iden3/prover-server/pkg/app/handlers"
+	customMiddleware "github.com/iden3/prover-server/pkg/app/middleware"
+
+	"net/http"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
@@ -32,9 +33,8 @@ func (s *Handlers) Routes() chi.Router {
 	r.Use(corsHandler.Handler)
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
-	r.Use(middleware.Logger)
+	r.Use(customMiddleware.ZapContextLogger)
 	r.Use(middleware.Recoverer)
-
 	r.Route("/api/v1", func(api chi.Router) {
 
 		api.Use(render.SetContentType(render.ContentTypeJSON))

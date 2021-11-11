@@ -1,24 +1,24 @@
 package main
 
 import (
-	"os"
-
+	"context"
 	"github.com/iden3/prover-server/pkg/app"
 	"github.com/iden3/prover-server/pkg/app/configs"
 	"github.com/iden3/prover-server/pkg/app/handlers"
-	log "github.com/sirupsen/logrus"
+	"github.com/iden3/prover-server/pkg/log"
+	"go.uber.org/zap"
+	"os"
 )
 
 func main() {
 
-	log.SetLevel(log.DebugLevel)
-
 	config, err := configs.ReadConfigFromFile("prover")
 	if err != nil {
-		log.Error("cannot read issuer config storage", err.Error())
+		log.Error(context.Background(), "cannot read issuer config storage", zap.Error(err))
 		os.Exit(1)
 	}
 
+	log.SetLevelStr("debug")
 	// init handlers for router
 
 	var appHandlers = app.Handlers{

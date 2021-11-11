@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"fmt"
+	"github.com/iden3/prover-server/pkg/log"
+	"go.uber.org/zap"
 	"net/http"
 	"os"
 	"path"
@@ -10,7 +12,6 @@ import (
 	"github.com/iden3/prover-server/pkg/app/configs"
 	"github.com/iden3/prover-server/pkg/app/rest"
 	"github.com/iden3/prover-server/pkg/proof"
-	log "github.com/sirupsen/logrus"
 )
 
 // ZKHandler is handler for zkp operations
@@ -51,14 +52,14 @@ func (h *ZKHandler) GenerateProof(w http.ResponseWriter, r *http.Request) {
 		rest.ErrorJSON(w, r, http.StatusBadRequest, err, "can't bind request", 0)
 		return
 	}
-
+	log.Debug(r.Context(), "Proof generation request", zap.Any("inputs", req))
 	circuitPath, err := getValidatedCircuitPath(h.ProverConfig.CircuitsBasePath, req.CircuitName)
 	if err != nil {
 		rest.ErrorJSON(w, r, http.StatusBadRequest, err, "illegal circuitPath", 0)
 		return
 	}
 
-	fullProof, err := proof.GenerateZkProof(circuitPath, req.Inputs)
+	fullProof, err := proof.GenerateZkProof(r.Context(), circuitPath, req.Inputs)
 
 	if err != nil {
 		rest.ErrorJSON(w, r, http.StatusInternalServerError, err, "can't generate identifier", 0)
@@ -79,6 +80,7 @@ func (h *ZKHandler) VerifyProof(w http.ResponseWriter, r *http.Request) {
 		rest.ErrorJSON(w, r, http.StatusBadRequest, err, "can't bind request", 0)
 		return
 	}
+	log.Debug(r.Context(), "Proof verification request", zap.Any("inputs", req))
 
 	circuitPath, err := getValidatedCircuitPath(h.ProverConfig.CircuitsBasePath, req.CircuitName)
 	if err != nil {
@@ -86,7 +88,7 @@ func (h *ZKHandler) VerifyProof(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = proof.VerifyZkProof(circuitPath, &req.ZKP)
+	err = proof.VerifyZkProof(r.Context(), circuitPath, &req.ZKP)
 	if err == nil {
 		valid = true
 	}
@@ -98,14 +100,12 @@ func getValidatedCircuitPath(circuitBasePath, circuitName string) (circuitPath s
 	// TODO: validate circuitName for illegal characters, etc
 
 	circuitPath = circuitBasePath + "/" + circuitName
-	log.Debugf("circuitPath: %s\n", path.Clean(circuitPath))
 
 	if path.Clean(circuitPath) != circuitPath {
 		return "", fmt.Errorf("illegal circuitPath")
 	}
 
-	info, err := os.Stat(circuitPath)
-	fmt.Printf("%+v %v\n", info, err)
+	_, err = os.Stat(circuitPath)
 	if os.IsNotExist(err) {
 		return "", fmt.Errorf("circuitPath doesn't exist")
 	}

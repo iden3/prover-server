@@ -1,6 +1,7 @@
 package proof
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/stretchr/testify/require"
@@ -19,7 +20,7 @@ func TestGenerateZkProof(t *testing.T) {
 	inputs["claimsTreeRoot"] = "17248198177000890492398726817367011200837288385524266151230016714271796747058"
 	inputs["newIdState"] = "6336962667653660415941910512900805409538436926155251354544947585811502539488"
 
-	proof, err := GenerateZkProof("../../circuits/idState", inputs)
+	proof, err := GenerateZkProof(context.TODO(), "../../circuits/idState", inputs)
 	require.Empty(t, err)
 	logrus.Infoln(proof)
 

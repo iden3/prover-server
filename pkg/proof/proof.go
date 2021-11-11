@@ -1,14 +1,16 @@
 package proof
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/iden3/prover-server/pkg/log"
+	"github.com/pkg/errors"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"path"
 	"strings"
-	"github.com/pkg/errors"
 )
 
 // ZKInputs are inputs for proof generation
@@ -29,7 +31,7 @@ type FullProof struct {
 }
 
 // GenerateZkProof executes snarkjs groth16prove function and returns proof only if it's valid
-func GenerateZkProof(circuitPath string, inputs ZKInputs) (*FullProof, error) {
+func GenerateZkProof(ctx context.Context, circuitPath string, inputs ZKInputs) (*FullProof, error) {
 
 	if path.Clean(circuitPath) != circuitPath {
 		return nil, fmt.Errorf("illegal circuitPath")
@@ -75,7 +77,7 @@ func GenerateZkProof(circuitPath string, inputs ZKInputs) (*FullProof, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to calculate witness")
 	}
-	fmt.Println("-- witness calculate completed --")
+	log.Debug(ctx, "-- witness calculate completed --")
 
 	// create tmp proof file
 	proofFile, err := ioutil.TempFile("", "proof-*.json")
@@ -105,13 +107,13 @@ func GenerateZkProof(circuitPath string, inputs ZKInputs) (*FullProof, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to generate proof")
 	}
-	fmt.Println("-- groth16 prove completed --")
+	log.Debug(ctx, "-- groth16 prove completed --")
 
 	// verify proof
 	verifyCmd := exec.Command("snarkjs", "groth16", "verify", circuitPath+"/verification_key.json", publicFile.Name(), proofFile.Name())
 	verifyOut, err := verifyCmd.CombinedOutput()
-	fmt.Println("-- groth16 verify --")
-	fmt.Println(string(verifyOut))
+	log.Debug(ctx, "-- groth16 verify --")
+	log.Debug(ctx, strings.TrimSpace(string(verifyOut)))
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to verify proof")
 	}
@@ -147,7 +149,7 @@ func GenerateZkProof(circuitPath string, inputs ZKInputs) (*FullProof, error) {
 }
 
 // VerifyZkProof executes snarkjs verify function and returns if proof is valid
-func VerifyZkProof(circuitPath string, zkp *FullProof) error {
+func VerifyZkProof(ctx context.Context, circuitPath string, zkp *FullProof) error {
 
 	if path.Clean(circuitPath) != circuitPath {
 		return fmt.Errorf("illegal circuitPath")
@@ -202,8 +204,8 @@ func VerifyZkProof(circuitPath string, zkp *FullProof) error {
 	// verify proof
 	verifyCmd := exec.Command("snarkjs", "groth16", "verify", circuitPath+"/verification_key.json", publicFile.Name(), proofFile.Name())
 	verifyOut, err := verifyCmd.CombinedOutput()
-	fmt.Println("-- groth16 verify --")
-	fmt.Println(string(verifyOut))
+	log.Debug(ctx, "-- groth16 verify --")
+	log.Debug(ctx, strings.TrimSpace(string(verifyOut)))
 	if err != nil {
 		return errors.Wrap(err, "failed to verify proof")
 	}

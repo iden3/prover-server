@@ -3,7 +3,6 @@ package handlers
 import (
 	"fmt"
 	"github.com/go-chi/render"
-	zkutils "github.com/iden3/go-iden3-core/utils/zk"
 	"github.com/iden3/prover-server/pkg/app/configs"
 	"github.com/iden3/prover-server/pkg/app/rest"
 	"github.com/iden3/prover-server/pkg/proof"
@@ -13,31 +12,36 @@ import (
 	"path/filepath"
 )
 
+// ZKHandler is handler for zkp operations
 type ZKHandler struct {
 	ProverConfig configs.ProverConfig
 }
 
+// GenerateReq is request for proof generation
 type GenerateReq struct {
 	CircuitName string         `json:"circuit_name"`
 	Inputs      proof.ZKInputs `json:"inputs"`
 }
 
+// VerifyReq is request for proof verification
 type VerifyReq struct {
-	CircuitName string              `json:"circuit_name"`
-	ZKP         *zkutils.ZkProofOut `json:"zkp"`
+	CircuitName string          `json:"circuit_name"`
+	ZKP         proof.FullProof `json:"zkp"`
 }
 
+// VerifyResp is response for proof verification
 type VerifyResp struct {
 	Valid bool `json:"valid"`
 }
 
+// NewZKHandler creates new instance of handler
 func NewZKHandler(proverConfig configs.ProverConfig) *ZKHandler {
 	return &ZKHandler{
 		proverConfig,
 	}
 }
 
-// GenerateProof
+// GenerateProof is a handler for proof generation
 // POST /api/v1/proof/generate
 func (h *ZKHandler) GenerateProof(w http.ResponseWriter, r *http.Request) {
 
@@ -53,17 +57,17 @@ func (h *ZKHandler) GenerateProof(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	zkProofOut, err := proof.GenerateZkProof(circuitPath, req.Inputs)
+	fullProof, err := proof.GenerateZkProof(circuitPath, req.Inputs)
 
 	if err != nil {
 		rest.ErrorJSON(w, r, http.StatusInternalServerError, err, "can't generate identifier", 0)
 		return
 	}
 
-	render.JSON(w, r, zkProofOut)
+	render.JSON(w, r, fullProof)
 }
 
-// VerifyProof
+// VerifyProof is a handler for zkp verification
 // POST /api/v1/proof/verify
 func (h *ZKHandler) VerifyProof(w http.ResponseWriter, r *http.Request) {
 
@@ -81,7 +85,7 @@ func (h *ZKHandler) VerifyProof(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = proof.VerifyZkProof(circuitPath, req.ZKP)
+	err = proof.VerifyZkProof(circuitPath, &req.ZKP)
 	if err == nil {
 		valid = true
 	}
@@ -89,7 +93,7 @@ func (h *ZKHandler) VerifyProof(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, VerifyResp{Valid: valid})
 }
 
-func getValidatedCircuitPath(circuitBasePath string, circuitName string) (circuitPath string, err error) {
+func getValidatedCircuitPath(circuitBasePath, circuitName string) (circuitPath string, err error) {
 	// TODO: validate circuitName for illegal characters, etc
 
 	circuitPath = circuitBasePath + "/" + circuitName

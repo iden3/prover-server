@@ -11,11 +11,13 @@ import (
 	"github.com/go-chi/render"
 )
 
+// Handlers contain supported handlers by server
 type Handlers struct {
 	/* Put handlers here*/
 	ZKHandler *handlers.ZKHandler
 }
 
+// Routes initializes router
 func (s *Handlers) Routes() chi.Router {
 
 	r := chi.NewRouter()

@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"github.com/stretchr/testify/require"
 	"testing"
-
-	"github.com/sirupsen/logrus"
 )
 
 func TestGenerateZkProof(t *testing.T) {
@@ -22,7 +20,6 @@ func TestGenerateZkProof(t *testing.T) {
 
 	proof, err := GenerateZkProof(context.TODO(), "../../circuits/idState", inputs)
 	require.Empty(t, err)
-	logrus.Infoln(proof)
 
 	proofJSON, _ := json.Marshal(proof)
 	fmt.Println(string(proofJSON))

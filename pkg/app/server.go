@@ -23,5 +23,5 @@ func NewServer(router chi.Router) *Server {
 func (s *Server) Run(port int) {
 	log.Infow("Server started", "port", port)
 	err := http.ListenAndServe(fmt.Sprintf(":%d", port), s.Routes)
-	log.Panic("server stopped", err)
+	log.Fatal(err)
 }

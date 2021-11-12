@@ -15,7 +15,7 @@ func ZapContextLogger(next http.Handler) http.Handler {
 
 		t1 := time.Now()
 		defer func() {
-			log.Info(r.Context(), "",
+			log.WithContext(r.Context()).Info("",
 				zap.String("method", r.Method),
 				zap.String("path", r.URL.Path),
 				zap.String("remoteAddr", r.RemoteAddr),

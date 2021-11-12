@@ -3,7 +3,6 @@ package log
 import (
 	"context"
 	"fmt"
-	"github.com/go-chi/chi/middleware"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"time"
@@ -32,7 +31,6 @@ const (
 )
 
 var log *zap.Logger
-var contextLog *ContextLogger
 
 var logLevel *zap.AtomicLevel
 
@@ -42,23 +40,22 @@ func SetLevelStr(levelStr string) {
 	l := getDefaultLoggerOrPanic() // init logger if it hasn't yet been
 	err := logLevel.UnmarshalText([]byte(levelStr))
 	if err != nil {
-		l.Log.Error("can't change log level: invalid string value provided")
+		l.Error("can't change log level: invalid string value provided")
 		return
 	}
 }
 
-func getDefaultLoggerOrPanic() *ContextLogger {
+func getDefaultLoggerOrPanic() *zap.Logger {
 	var err error
-	if contextLog != nil {
-		return contextLog
+	if log != nil {
+		return log
 	}
 	// default level: debug
 	log, logLevel, err = NewLogger("debug", []string{"stdout"})
 	if err != nil {
 		panic(err)
 	}
-	contextLog = NewContextLogger(log)
-	return contextLog
+	return log
 }
 
 // NewLogger creates the logger with defined level. outputs defines the outputs where the
@@ -105,67 +102,40 @@ func NewLogger(levelStr string, outputs []string) (*zap.Logger, *zap.AtomicLevel
 	return l, &level, nil
 }
 
-// NewContextLogger returns a logger that extracts log fields a context before passing through to underlying zap logger.
-func NewContextLogger(log *zap.Logger) *ContextLogger {
+// WithContext creates logger with context
+func WithContext(ctx context.Context) *ContextLogger {
 	return &ContextLogger{
-		Log: log,
+		Log:     getDefaultLoggerOrPanic(),
+		Context: ctx,
 	}
 }
 
-// ContextLogger is logger that will use context for additional fields
-type ContextLogger struct {
-	Log *zap.Logger
-}
-
 // Debug is zap debug with context
-func Debug(ctx context.Context, msg string, userFields ...zap.Field) context.Context {
-	getDefaultLoggerOrPanic().Log.Debug(msg, accumulateLogFields(ctx, userFields)...)
-	return ctx
+func Debug(msg string, userFields ...zap.Field) {
+	getDefaultLoggerOrPanic().Debug(msg, userFields...)
 }
 
 // Info is zap Info with context
-func Info(ctx context.Context, msg string, userFields ...zap.Field) context.Context {
-	getDefaultLoggerOrPanic().Log.Info(msg, accumulateLogFields(ctx, userFields)...)
-	return ctx
+func Info(msg string, userFields ...zap.Field) {
+	getDefaultLoggerOrPanic().Info(msg, userFields...)
 }
 
 // Error is zap Error with context
-func Error(ctx context.Context, msg string, userFields ...zap.Field) context.Context {
-	getDefaultLoggerOrPanic().Log.Error(msg, accumulateLogFields(ctx, userFields)...)
-	return ctx
+func Error(msg string, userFields ...zap.Field) {
+	getDefaultLoggerOrPanic().Error(msg, userFields...)
 }
 
 // Panic is zap Panic with context
-func Panic(ctx context.Context, msg string, userFields ...zap.Field) context.Context {
-	getDefaultLoggerOrPanic().Log.Panic(msg, accumulateLogFields(ctx, userFields)...)
-	return ctx
+func Panic(msg string, userFields ...zap.Field) {
+	getDefaultLoggerOrPanic().Panic(msg, userFields...)
 }
 
 // Warn is zap Warn with context
-func Warn(ctx context.Context, msg string, userFields ...zap.Field) context.Context {
-
-	getDefaultLoggerOrPanic().Log.Warn(msg, accumulateLogFields(ctx, userFields)...)
-	return ctx
+func Warn(msg string, userFields ...zap.Field) {
+	getDefaultLoggerOrPanic().Warn(msg, userFields...)
 }
 
 // Check is zap Check with context
 func Check(lvl zapcore.Level, msg string) *zapcore.CheckedEntry {
-	return getDefaultLoggerOrPanic().Log.Check(lvl, msg)
-}
-
-func accumulateLogFields(ctx context.Context, newFields []zap.Field) []zap.Field {
-	previousFields := GetLogFieldsFromCtx(ctx)
-	return append(previousFields, newFields...)
-}
-
-// GetLogFieldsFromCtx extracts fields from context
-func GetLogFieldsFromCtx(ctx context.Context) []zap.Field {
-	var fields []zap.Field
-	if ctx != nil {
-		v := ctx.Value(middleware.RequestIDKey)
-		if v != nil {
-			fields = append(fields, zap.String("reqID", v.(string)))
-		}
-	}
-	return fields
+	return getDefaultLoggerOrPanic().Check(lvl, msg)
 }

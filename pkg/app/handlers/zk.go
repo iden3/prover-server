@@ -52,7 +52,7 @@ func (h *ZKHandler) GenerateProof(w http.ResponseWriter, r *http.Request) {
 		rest.ErrorJSON(w, r, http.StatusBadRequest, err, "can't bind request", 0)
 		return
 	}
-	log.Debug(r.Context(), "Proof generation request", zap.Any("inputs", req))
+	log.WithContext(r.Context()).Debug("Proof generation request", zap.Any("inputs", req))
 	circuitPath, err := getValidatedCircuitPath(h.ProverConfig.CircuitsBasePath, req.CircuitName)
 	if err != nil {
 		rest.ErrorJSON(w, r, http.StatusBadRequest, err, "illegal circuitPath", 0)
@@ -80,7 +80,8 @@ func (h *ZKHandler) VerifyProof(w http.ResponseWriter, r *http.Request) {
 		rest.ErrorJSON(w, r, http.StatusBadRequest, err, "can't bind request", 0)
 		return
 	}
-	log.Debug(r.Context(), "Proof verification request", zap.Any("inputs", req))
+
+	log.WithContext(r.Context()).Debug("Proof verification request", zap.Any("inputs", req))
 
 	circuitPath, err := getValidatedCircuitPath(h.ProverConfig.CircuitsBasePath, req.CircuitName)
 	if err != nil {

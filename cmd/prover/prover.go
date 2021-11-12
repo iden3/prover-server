@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"github.com/iden3/prover-server/pkg/app"
 	"github.com/iden3/prover-server/pkg/app/configs"
 	"github.com/iden3/prover-server/pkg/app/handlers"
@@ -14,7 +13,7 @@ func main() {
 
 	config, err := configs.ReadConfigFromFile("prover")
 	if err != nil {
-		log.Error(context.Background(), "cannot read issuer config storage", zap.Error(err))
+		log.Error("cannot read issuer config storage", zap.Error(err))
 		os.Exit(1)
 	}
 

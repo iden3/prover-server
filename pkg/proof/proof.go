@@ -77,7 +77,7 @@ func GenerateZkProof(ctx context.Context, circuitPath string, inputs ZKInputs) (
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to calculate witness")
 	}
-	log.Debug(ctx, "-- witness calculate completed --")
+	log.WithContext(ctx).Debug("-- witness calculate completed --")
 
 	// create tmp proof file
 	proofFile, err := ioutil.TempFile("", "proof-*.json")
@@ -107,13 +107,13 @@ func GenerateZkProof(ctx context.Context, circuitPath string, inputs ZKInputs) (
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to generate proof")
 	}
-	log.Debug(ctx, "-- groth16 prove completed --")
+	log.WithContext(ctx).Debug("-- groth16 prove completed --")
 
 	// verify proof
 	verifyCmd := exec.Command("snarkjs", "groth16", "verify", circuitPath+"/verification_key.json", publicFile.Name(), proofFile.Name())
 	verifyOut, err := verifyCmd.CombinedOutput()
-	log.Debug(ctx, "-- groth16 verify --")
-	log.Debug(ctx, strings.TrimSpace(string(verifyOut)))
+	log.WithContext(ctx).Debug("-- groth16 verify --")
+	log.WithContext(ctx).Debug(strings.TrimSpace(string(verifyOut)))
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to verify proof")
 	}
@@ -204,8 +204,8 @@ func VerifyZkProof(ctx context.Context, circuitPath string, zkp *FullProof) erro
 	// verify proof
 	verifyCmd := exec.Command("snarkjs", "groth16", "verify", circuitPath+"/verification_key.json", publicFile.Name(), proofFile.Name())
 	verifyOut, err := verifyCmd.CombinedOutput()
-	log.Debug(ctx, "-- groth16 verify --")
-	log.Debug(ctx, strings.TrimSpace(string(verifyOut)))
+	log.WithContext(ctx).Debug("-- groth16 verify --")
+	log.WithContext(ctx).Debug(strings.TrimSpace(string(verifyOut)))
 	if err != nil {
 		return errors.Wrap(err, "failed to verify proof")
 	}

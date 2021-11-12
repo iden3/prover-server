@@ -1,25 +1,37 @@
 package proof
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/iden3/prover-server/pkg/log"
+	"github.com/pkg/errors"
 	"io/ioutil"
-	"math/big"
 	"os"
 	"os/exec"
 	"path"
 	"strings"
-
-	"github.com/pkg/errors"
-
-	"github.com/iden3/go-circom-prover-verifier/parsers"
-	zktypes "github.com/iden3/go-circom-prover-verifier/types"
-	zkutils "github.com/iden3/go-iden3-core/utils/zk"
 )
 
+// ZKInputs are inputs for proof generation
 type ZKInputs map[string]interface{}
 
-func GenerateZkProof(circuitPath string, inputs ZKInputs) (*zkutils.ZkProofOut, error) {
+// ZKProof is structure that represents SnarkJS library result of proof generation
+type ZKProof struct {
+	A        []string   `json:"pi_a"`
+	B        [][]string `json:"pi_b"`
+	C        []string   `json:"pi_c"`
+	Protocol string     `json:"protocol"`
+}
+
+// FullProof is ZKP proof with public signals
+type FullProof struct {
+	Proof      *ZKProof `json:"proof"`
+	PubSignals []string `json:"pub_signals"`
+}
+
+// GenerateZkProof executes snarkjs groth16prove function and returns proof only if it's valid
+func GenerateZkProof(ctx context.Context, circuitPath string, inputs ZKInputs) (*FullProof, error) {
 
 	if path.Clean(circuitPath) != circuitPath {
 		return nil, fmt.Errorf("illegal circuitPath")
@@ -61,12 +73,11 @@ func GenerateZkProof(circuitPath string, inputs ZKInputs) (*zkutils.ZkProofOut, 
 
 	// calculate witness
 	wtnsCmd := exec.Command("snarkjs", "wtns", "calculate", circuitPath+"/circuit.wasm", inputFile.Name(), wtnsFile.Name())
-	wtnsOut, err := wtnsCmd.CombinedOutput()
-	fmt.Println("-- witness calculate --")
-	fmt.Println(string(wtnsOut))
+	_, err = wtnsCmd.CombinedOutput()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to calculate witness")
 	}
+	log.WithContext(ctx).Debugw("-- witness calculate completed --")
 
 	// create tmp proof file
 	proofFile, err := ioutil.TempFile("", "proof-*.json")
@@ -92,56 +103,53 @@ func GenerateZkProof(circuitPath string, inputs ZKInputs) (*zkutils.ZkProofOut, 
 
 	// generate proof
 	proveCmd := exec.Command("snarkjs", "groth16", "prove", circuitPath+"/circuit_final.zkey", wtnsFile.Name(), proofFile.Name(), publicFile.Name())
-	proveOut, err := proveCmd.CombinedOutput()
-	fmt.Println("-- groth16 prove --")
-	fmt.Println(string(proveOut))
+	_, err = proveCmd.CombinedOutput()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to generate proof")
 	}
+	log.WithContext(ctx).Debugw("-- groth16 prove completed --")
 
 	// verify proof
 	verifyCmd := exec.Command("snarkjs", "groth16", "verify", circuitPath+"/verification_key.json", publicFile.Name(), proofFile.Name())
 	verifyOut, err := verifyCmd.CombinedOutput()
-	fmt.Println("-- groth16 verify --")
-	fmt.Println(string(verifyOut))
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to verify proof")
 	}
+	log.WithContext(ctx).Debugf("-- groth16 verify -- snarkjs result %s", strings.TrimSpace(string(verifyOut)))
+
 	if !strings.Contains(string(verifyOut), "OK!") {
 		return nil, errors.New("invalid proof")
 	}
-	var proof *zktypes.Proof
-	var pubSignals []*big.Int
+
+	var proof ZKProof
+	var pubSignals []string
 
 	// read generated public signals
-	publicJSON, err := ioutil.ReadFile(publicFile.Name())
+	publicJSON, err := os.ReadFile(publicFile.Name())
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to read generated public signals")
 	}
 
-	//fmt.Println(string(publicJSON))
-
-	pubSignals, err = parsers.ParsePublicSignals(publicJSON)
+	err = json.Unmarshal(publicJSON, &pubSignals)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to unmarshal generated public signals")
+		return nil, errors.Wrap(err, "failed to unmarshal public signals")
 	}
-
 	// read generated proof
-	proofJSON, err := ioutil.ReadFile(proofFile.Name())
+	proofJSON, err := os.ReadFile(proofFile.Name())
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to read generated proof")
 	}
-	//fmt.Println(string(proofJSON))
 
-	proof, err = parsers.ParseProof(proofJSON)
+	err = json.Unmarshal(proofJSON, &proof)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to unmarshal generated proof")
 	}
 
-	return &zkutils.ZkProofOut{Proof: *proof, PubSignals: pubSignals}, nil
+	return &FullProof{Proof: &proof, PubSignals: pubSignals}, nil
 }
 
-func VerifyZkProof(circuitPath string, zkp *zkutils.ZkProofOut) error {
+// VerifyZkProof executes snarkjs verify function and returns if proof is valid
+func VerifyZkProof(ctx context.Context, circuitPath string, zkp *FullProof) error {
 
 	if path.Clean(circuitPath) != circuitPath {
 		return fmt.Errorf("illegal circuitPath")
@@ -162,18 +170,13 @@ func VerifyZkProof(circuitPath string, zkp *zkutils.ZkProofOut) error {
 	defer os.Remove(publicFile.Name())
 
 	// serialize proof into json
-	proofJSON, err := parsers.ProofToJson(&zkp.Proof)
+	proofJSON, err := json.Marshal(zkp.Proof)
 	if err != nil {
 		return errors.Wrap(err, "failed to serialize proof into json")
 	}
 
-	var pubSignals []string
-	for _, ps := range zkp.PubSignals {
-		pubSignals = append(pubSignals, ps.String())
-	}
-
 	// serialize public signals into json
-	publicJSON, err := json.Marshal(pubSignals)
+	publicJSON, err := json.Marshal(zkp.PubSignals)
 	if err != nil {
 		return errors.Wrap(err, "failed to serialize public signals into json")
 	}
@@ -201,11 +204,11 @@ func VerifyZkProof(circuitPath string, zkp *zkutils.ZkProofOut) error {
 	// verify proof
 	verifyCmd := exec.Command("snarkjs", "groth16", "verify", circuitPath+"/verification_key.json", publicFile.Name(), proofFile.Name())
 	verifyOut, err := verifyCmd.CombinedOutput()
-	fmt.Println("-- groth16 verify --")
-	fmt.Println(string(verifyOut))
 	if err != nil {
 		return errors.Wrap(err, "failed to verify proof")
 	}
+	log.WithContext(ctx).Debugf("-- groth16 verify -- snarkjs result %s", strings.TrimSpace(string(verifyOut)))
+
 	if !strings.Contains(string(verifyOut), "OK!") {
 		return errors.New("invalid proof")
 	}

@@ -6,6 +6,7 @@ import (
 	"strings"
 )
 
+// Config structure represent yaml config for prover serever
 type Config struct {
 	Server struct {
 		Port int    `mapstructure:"port"`
@@ -14,10 +15,12 @@ type Config struct {
 	Prover ProverConfig `mapstructure:"prover"`
 }
 
+// ProverConfig contains only base path to circuits folder
 type ProverConfig struct {
 	CircuitsBasePath string `mapstructure:"circuitsBasePath"`
 }
 
+// ReadConfigFromFile parse config file
 func ReadConfigFromFile(path string) (*Config, error) {
 
 	viper.AddConfigPath("./configs")

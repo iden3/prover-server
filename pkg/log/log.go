@@ -3,36 +3,50 @@ package log
 import (
 	"context"
 	"fmt"
+	"github.com/hermeznetwork/tracerr"
+	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	"strings"
 	"time"
 )
+
+// Level is log level for any logger
+type Level zapcore.Level
 
 // Duplicated constants from zap for more intuitive usage
 const (
 	// DebugLevel logs are typically voluminous, and are usually disabled in
 	// production.
-	DebugLevel = zap.DebugLevel
+	DebugLevel = Level(zap.DebugLevel)
 	// InfoLevel is the default logging priority.
-	InfoLevel = zap.InfoLevel
+	InfoLevel = Level(zap.InfoLevel)
 	// WarnLevel logs are more important than Info, but don't need individual
 	// human review.
-	WarnLevel = zap.WarnLevel
+	WarnLevel = Level(zap.WarnLevel)
 	// ErrorLevel logs are high-priority. If an application is running smoothly,
 	// it shouldn't generate any error-level logs.
-	ErrorLevel = zap.ErrorLevel
+	ErrorLevel = Level(zap.ErrorLevel)
 	// DPanicLevel logs are particularly important errors. In development the
 	// logger panics after writing the message.
-	DPanicLevel = zap.DPanicLevel
+	DPanicLevel = Level(zap.DPanicLevel)
 	// PanicLevel logs a message, then panics.
-	PanicLevel = zap.PanicLevel
+	PanicLevel = Level(zap.PanicLevel)
 	// FatalLevel logs a message, then calls os.Exit(1).
-	FatalLevel = zap.FatalLevel
+	FatalLevel = Level(zap.FatalLevel)
 )
 
-var log *zap.Logger
+var l *zap.Logger
+
+var log *zap.SugaredLogger
 
 var logLevel *zap.AtomicLevel
+
+// SetLevel sets level
+func SetLevel(level Level) {
+	getDefaultLoggerOrPanic() // init logger if it hasn't yet been
+	logLevel.SetLevel(zapcore.Level(level))
+}
 
 // SetLevelStr sets level of default logger from level name
 // Valid values: debug, info, warn, error, dpanic, panic, fatal
@@ -45,16 +59,17 @@ func SetLevelStr(levelStr string) {
 	}
 }
 
-func getDefaultLoggerOrPanic() *zap.Logger {
+func getDefaultLoggerOrPanic() *zap.SugaredLogger {
 	var err error
 	if log != nil {
 		return log
 	}
 	// default level: debug
-	log, logLevel, err = NewLogger("debug", []string{"stdout"})
+	l, logLevel, err = NewLogger("debug", []string{"stdout"})
 	if err != nil {
 		panic(err)
 	}
+	log = l.Sugar()
 	return log
 }
 
@@ -92,7 +107,6 @@ func NewLogger(levelStr string, outputs []string) (*zap.Logger, *zap.AtomicLevel
 			LineEnding:    zapcore.DefaultLineEnding,
 		},
 	}
-
 	logger, err := cfg.Build()
 	if err != nil {
 		return nil, nil, err
@@ -110,32 +124,171 @@ func WithContext(ctx context.Context) *ContextLogger {
 	}
 }
 
-// Debug is zap debug with context
-func Debug(msg string, userFields ...zap.Field) {
-	getDefaultLoggerOrPanic().Debug(msg, userFields...)
+// Debug calls log.Debug
+func Debug(args ...interface{}) {
+	getDefaultLoggerOrPanic().Debug(args...)
 }
 
-// Info is zap Info with context
-func Info(msg string, userFields ...zap.Field) {
-	getDefaultLoggerOrPanic().Info(msg, userFields...)
+// Info calls log.Info
+func Info(args ...interface{}) {
+	getDefaultLoggerOrPanic().Info(args...)
 }
 
-// Error is zap Error with context
-func Error(msg string, userFields ...zap.Field) {
-	getDefaultLoggerOrPanic().Error(msg, userFields...)
+// Warn calls log.Warn
+func Warn(args ...interface{}) {
+	args = appendStackTraceMaybeArgs(args)
+	getDefaultLoggerOrPanic().Warn(args...)
 }
 
-// Panic is zap Panic with context
-func Panic(msg string, userFields ...zap.Field) {
-	getDefaultLoggerOrPanic().Panic(msg, userFields...)
+// Panic calls log.Panic
+func Panic(args ...interface{}) {
+	args = appendStackTraceMaybeArgs(args)
+	getDefaultLoggerOrPanic().Panic(args...)
 }
 
-// Warn is zap Warn with context
-func Warn(msg string, userFields ...zap.Field) {
-	getDefaultLoggerOrPanic().Warn(msg, userFields...)
+// Error calls log.Error
+func Error(args ...interface{}) {
+	args = appendStackTraceMaybeArgs(args)
+	getDefaultLoggerOrPanic().Error(args...)
 }
 
-// Check is zap Check with context
-func Check(lvl zapcore.Level, msg string) *zapcore.CheckedEntry {
-	return getDefaultLoggerOrPanic().Check(lvl, msg)
+// Fatal calls log.Fatal
+func Fatal(args ...interface{}) {
+	args = appendStackTraceMaybeArgs(args)
+	getDefaultLoggerOrPanic().Fatal(args...)
+}
+
+// Debugf calls log.Debugf
+func Debugf(template string, args ...interface{}) {
+	getDefaultLoggerOrPanic().Debugf(template, args...)
+}
+
+// Infof calls log.Infof
+func Infof(template string, args ...interface{}) {
+	getDefaultLoggerOrPanic().Infof(template, args...)
+}
+
+// Warnf calls log.Warnf
+func Warnf(template string, args ...interface{}) {
+	getDefaultLoggerOrPanic().Warnf(template, args...)
+}
+
+// Fatalf calls log.Warnf
+func Fatalf(template string, args ...interface{}) {
+	getDefaultLoggerOrPanic().Fatalf(template, args...)
+}
+
+// Errorf calls log.Errorf and stores the error message into the ErrorFile
+func Errorf(template string, args ...interface{}) {
+	getDefaultLoggerOrPanic().Errorf(template, args...)
+}
+
+// Debugw calls log.Debugw
+func Debugw(template string, kv ...interface{}) {
+	getDefaultLoggerOrPanic().Debugw(template, kv...)
+}
+
+// Infow calls log.Infow
+func Infow(template string, kv ...interface{}) {
+	getDefaultLoggerOrPanic().Infow(template, kv...)
+}
+
+// Warnw calls log.Warnw
+func Warnw(template string, kv ...interface{}) {
+	template = appendStackTraceMaybeKV(template, kv)
+	getDefaultLoggerOrPanic().Warnw(template, kv...)
+}
+
+// Errorw calls log.Errorw
+func Errorw(template string, kv ...interface{}) {
+	template = appendStackTraceMaybeKV(template, kv)
+	getDefaultLoggerOrPanic().Errorw(template, kv...)
+}
+
+// Fatalw calls log.Fatalw
+func Fatalw(template string, kv ...interface{}) {
+	template = appendStackTraceMaybeKV(template, kv)
+	getDefaultLoggerOrPanic().Fatalw(template, kv...)
+}
+
+func sprintStackTrace(st []tracerr.Frame) string {
+	builder := strings.Builder{}
+	// Skip deepest frames because it belongs to the go runtime and we don't
+	// care about them.
+	if len(st) > 1 {
+		st = st[:len(st)-2] // nolint
+	}
+	for _, f := range st {
+		builder.WriteString(fmt.Sprintf("\n%s:%d %s()", f.Path, f.Line, funcName(f.Func)))
+	}
+	builder.WriteString("\n")
+	return builder.String()
+}
+
+// appendStackTraceMaybeArgs will append the stacktrace to the args if one of them
+// is a tracerr.Error
+func appendStackTraceMaybeArgs(args []interface{}) []interface{} {
+	for i := range args {
+		if err, ok := args[i].(tracerr.Error); ok {
+			st := err.StackTrace()
+			return append(args, sprintStackTrace(st))
+		}
+		if err, ok := args[i].(causer); ok {
+			cause := causeWithStackTrace(err.(error))
+			if stErr, ok := cause.(stackTracer); ok {
+				st := stErr.StackTrace()
+				for i := 0; i < len(st)-2; i++ {
+					args = append(args, "\n", fmt.Sprintf("%+v", st[i]))
+				}
+				return args
+			}
+			return append(args, fmt.Sprintf("%+v", cause))
+		}
+	}
+	return args
+}
+
+// appendStackTraceMaybeKV will append the stacktrace to the KV if one of them
+// is a tracerr.Error
+func appendStackTraceMaybeKV(msg string, kv []interface{}) string {
+	for i := range kv {
+		if i%2 == 0 {
+			continue
+		}
+		if err, ok := kv[i].(tracerr.Error); ok {
+			st := err.StackTrace()
+			return fmt.Sprintf("%v: %v%v\n", msg, err, sprintStackTrace(st))
+		}
+	}
+	return msg
+}
+
+func causeWithStackTrace(err error) error {
+	for err != nil {
+		errCauser, ok := err.(causer)
+		if !ok {
+			break
+		}
+		cause := errCauser.Cause()
+		_, ok = cause.(stackTracer)
+		if !ok {
+			break
+		}
+		err = cause
+	}
+	return err
+}
+
+// funcName removes the path prefix component of a function's name reported by func.Name().
+func funcName(name string) string {
+	i := strings.LastIndex(name, "/")
+	return name[i+1:]
+}
+
+type stackTracer interface {
+	StackTrace() errors.StackTrace
+}
+
+type causer interface {
+	Cause() error
 }

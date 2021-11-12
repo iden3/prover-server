@@ -3,7 +3,6 @@ package middleware
 import (
 	"github.com/go-chi/chi/middleware"
 	"github.com/iden3/prover-server/pkg/log"
-	"go.uber.org/zap"
 	"net/http"
 	"time"
 )
@@ -15,12 +14,12 @@ func ZapContextLogger(next http.Handler) http.Handler {
 
 		t1 := time.Now()
 		defer func() {
-			log.WithContext(r.Context()).Info("",
-				zap.String("method", r.Method),
-				zap.String("path", r.URL.Path),
-				zap.String("remoteAddr", r.RemoteAddr),
-				zap.Duration("lat", time.Since(t1)),
-				zap.Int("status", ww.Status()))
+			log.WithContext(r.Context()).Infow("http	",
+				"method", r.Method,
+				"path", r.URL.Path,
+				"remoteAddr", r.RemoteAddr,
+				"lat", time.Since(t1),
+				"status", ww.Status())
 		}()
 
 		next.ServeHTTP(ww, r)

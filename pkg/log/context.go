@@ -2,60 +2,102 @@ package log
 
 import (
 	"context"
+	"fmt"
 	"github.com/go-chi/chi/middleware"
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 )
 
 // ContextLogger is logger that will use context for additional fields
 type ContextLogger struct {
-	Log     *zap.Logger
+	Log     *zap.SugaredLogger
 	Context context.Context
 }
 
-// Debug is zap debug with context
-func (l *ContextLogger) Debug(msg string, userFields ...zap.Field) {
-	getDefaultLoggerOrPanic().Debug(msg, accumulateLogFields(l.Context, userFields)...)
+// Debug calls log.Debug
+func (l *ContextLogger) Debug(args ...interface{}) {
+	getDefaultLoggerOrPanic().Debugf(accumulateTemplate(l.Context, "%s"), args...)
 }
 
-// Info is zap Info with context
-func (l *ContextLogger) Info(msg string, userFields ...zap.Field) {
-	getDefaultLoggerOrPanic().Info(msg, accumulateLogFields(l.Context, userFields)...)
+// Info calls log.Info
+func (l *ContextLogger) Info(args ...interface{}) {
+	getDefaultLoggerOrPanic().Infof(accumulateTemplate(l.Context, "%s"), args...)
 }
 
-// Error is zap Error with context
-func (l *ContextLogger) Error(msg string, userFields ...zap.Field) {
-	getDefaultLoggerOrPanic().Error(msg, accumulateLogFields(l.Context, userFields)...)
+// Warn calls log.Warn  with context fields
+func (l *ContextLogger) Warn(args ...interface{}) {
+	args = appendStackTraceMaybeArgs(args)
+	getDefaultLoggerOrPanic().Warnf(accumulateTemplate(l.Context, "%s"), args...)
 }
 
-// Panic is zap Panic with context
-func (l *ContextLogger) Panic(ctx context.Context, msg string, userFields ...zap.Field) {
-	getDefaultLoggerOrPanic().Panic(msg, accumulateLogFields(l.Context, userFields)...)
+// Error calls log.Error  with context fields
+func (l *ContextLogger) Error(args ...interface{}) {
+	args = appendStackTraceMaybeArgs(args)
+	getDefaultLoggerOrPanic().Errorf(accumulateTemplate(l.Context, "%s"), args...)
 }
 
-// Warn is zap Warn with context
-func (l *ContextLogger) Warn(ctx context.Context, msg string, userFields ...zap.Field) {
-	getDefaultLoggerOrPanic().Warn(msg, accumulateLogFields(l.Context, userFields)...)
+// Fatal calls log.Fatal  with context fields
+func (l *ContextLogger) Fatal(args ...interface{}) {
+	args = appendStackTraceMaybeArgs(args)
+	getDefaultLoggerOrPanic().Fatalf(accumulateTemplate(l.Context, "%s"), args...)
 }
 
-// Check is zap Check with context
-func (l *ContextLogger) Check(lvl zapcore.Level, msg string) *zapcore.CheckedEntry {
-	return getDefaultLoggerOrPanic().Check(lvl, msg)
+// Debugf calls log.Debugf  with context fields
+func (l *ContextLogger) Debugf(template string, args ...interface{}) {
+	getDefaultLoggerOrPanic().Debugf(accumulateTemplate(l.Context, template), args...)
 }
 
-func accumulateLogFields(ctx context.Context, newFields []zap.Field) []zap.Field {
-	previousFields := GetLogFieldsFromCtx(ctx)
-	return append(previousFields, newFields...)
+// Infof calls log.Infof  with context fields
+func (l *ContextLogger) Infof(template string, args ...interface{}) {
+	getDefaultLoggerOrPanic().Infof(accumulateTemplate(l.Context, template), args)
 }
 
-// GetLogFieldsFromCtx extracts fields from context
-func GetLogFieldsFromCtx(ctx context.Context) []zap.Field {
-	var fields []zap.Field
-	if ctx != nil {
-		v := ctx.Value(middleware.RequestIDKey)
-		if v != nil {
-			fields = append(fields, zap.String("reqID", v.(string)))
-		}
-	}
-	return fields
+// Warnf calls log.Warnf with context fields
+func (l *ContextLogger) Warnf(template string, args ...interface{}) {
+	getDefaultLoggerOrPanic().Warnf(accumulateTemplate(l.Context, template), args)
+}
+
+// Fatalf calls log.Fatalf   with context fields
+func (l *ContextLogger) Fatalf(template string, args ...interface{}) {
+	getDefaultLoggerOrPanic().Fatalf(accumulateTemplate(l.Context, template), args)
+}
+
+// Errorf calls log.Errorf and stores the error message into the ErrorFile
+func (l *ContextLogger) Errorf(template string, args ...interface{}) {
+	getDefaultLoggerOrPanic().Errorf(accumulateTemplate(l.Context, template), args)
+}
+
+// Debugw is zap debug with context
+func (l *ContextLogger) Debugw(msg string, kv ...interface{}) {
+	getDefaultLoggerOrPanic().Debugw(accumulateTemplate(l.Context, msg), kv...)
+}
+
+// Infow is zap Infow with context
+func (l *ContextLogger) Infow(msg string, kv ...interface{}) {
+	getDefaultLoggerOrPanic().Infow(accumulateTemplate(l.Context, msg), kv...)
+}
+
+// Errorw is zap Errorw with context
+func (l *ContextLogger) Errorw(msg string, kv ...interface{}) {
+	getDefaultLoggerOrPanic().Errorw(accumulateTemplate(l.Context, msg), kv...)
+}
+
+// Panicw is zap Panicw with context
+func (l *ContextLogger) Panicw(msg string, kv ...interface{}) {
+	getDefaultLoggerOrPanic().Panicw(accumulateTemplate(l.Context, msg), kv...)
+}
+
+// Warnw is zap Warnw with context
+func (l *ContextLogger) Warnw(msg string, kv ...interface{}) {
+	getDefaultLoggerOrPanic().Warnw(accumulateTemplate(l.Context, msg), kv...)
+}
+
+func accumulateTemplate(ctx context.Context, template string) string {
+	requestID := GetRequestIDFromContext(ctx)
+	template = fmt.Sprintf("%v\t%s", requestID, template)
+	return template
+}
+
+// GetRequestIDFromContext extracts requestID from context
+func GetRequestIDFromContext(ctx context.Context) string {
+	return middleware.GetReqID(ctx)
 }

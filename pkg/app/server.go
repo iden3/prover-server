@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/go-chi/chi"
 	"github.com/iden3/prover-server/pkg/log"
-	"go.uber.org/zap"
 	"net/http"
 )
 
@@ -22,7 +21,7 @@ func NewServer(router chi.Router) *Server {
 
 // Run starts the server
 func (s *Server) Run(port int) {
-	log.Info("Server started", zap.Int("port", port))
+	log.Infow("Server started", "port", port)
 	err := http.ListenAndServe(fmt.Sprintf(":%d", port), s.Routes)
-	log.Panic("server stopped", zap.Error(err))
+	log.Panic("server stopped", err)
 }

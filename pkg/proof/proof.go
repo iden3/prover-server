@@ -125,7 +125,7 @@ func GenerateZkProof(ctx context.Context, circuitPath string, inputs ZKInputs) (
 	var pubSignals []string
 
 	// read generated public signals
-	publicJSON, err := ioutil.ReadFile(publicFile.Name())
+	publicJSON, err := os.ReadFile(publicFile.Name())
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to read generated public signals")
 	}
@@ -135,7 +135,7 @@ func GenerateZkProof(ctx context.Context, circuitPath string, inputs ZKInputs) (
 		return nil, errors.Wrap(err, "failed to unmarshal public signals")
 	}
 	// read generated proof
-	proofJSON, err := ioutil.ReadFile(proofFile.Name())
+	proofJSON, err := os.ReadFile(proofFile.Name())
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to read generated proof")
 	}

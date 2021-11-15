@@ -3,6 +3,9 @@ package proof
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/iden3/go-circom-prover-verifier/parsers"
+	zktypes "github.com/iden3/go-circom-prover-verifier/types"
+	zkutils "github.com/iden3/go-iden3-core/utils/zk"
 	"github.com/pkg/errors"
 	"io/ioutil"
 	"math/big"
@@ -10,10 +13,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
-
-	"github.com/iden3/go-circom-prover-verifier/parsers"
-	zktypes "github.com/iden3/go-circom-prover-verifier/types"
-	zkutils "github.com/iden3/go-iden3-core/utils/zk"
 )
 
 type ZKInputs map[string]interface{}
@@ -59,7 +58,7 @@ func GenerateZkProof(circuitPath string, inputs ZKInputs) (*zkutils.ZkProofOut, 
 	}
 
 	// calculate witness
-	wtnsCmd := exec.Command("snarkjs", "wtns", "calculate", circuitPath+"/circuit.wasm", inputFile.Name(), wtnsFile.Name())
+	wtnsCmd := exec.Command("node", "scripts/generate_witness.js", circuitPath+"/circuit.wasm", inputFile.Name(), wtnsFile.Name())
 	wtnsOut, err := wtnsCmd.CombinedOutput()
 	fmt.Println("-- witness calculate --")
 	fmt.Println(string(wtnsOut))

@@ -13,6 +13,9 @@ type Config struct {
 		Host string `mapstructure:"host"`
 	} `mapstructure:"server"`
 	Prover ProverConfig `mapstructure:"prover"`
+	Log    struct {
+		Level string `json:"level"`
+	}
 }
 
 // ProverConfig contains only base path to circuits folder

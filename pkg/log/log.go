@@ -3,7 +3,6 @@ package log
 import (
 	"context"
 	"fmt"
-	"github.com/hermeznetwork/tracerr"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -211,28 +210,10 @@ func Fatalw(template string, kv ...interface{}) {
 	getDefaultLoggerOrPanic().Fatalw(template, kv...)
 }
 
-func sprintStackTrace(st []tracerr.Frame) string {
-	builder := strings.Builder{}
-	// Skip deepest frames because it belongs to the go runtime and we don't
-	// care about them.
-	if len(st) > 1 {
-		st = st[:len(st)-2] // nolint
-	}
-	for _, f := range st {
-		builder.WriteString(fmt.Sprintf("\n%s:%d %s()", f.Path, f.Line, funcName(f.Func)))
-	}
-	builder.WriteString("\n")
-	return builder.String()
-}
-
 // appendStackTraceMaybeArgs will append the stacktrace to the args if one of them
-// is a tracerr.Error
+// is an Error
 func appendStackTraceMaybeArgs(args []interface{}) []interface{} {
 	for i := range args {
-		if err, ok := args[i].(tracerr.Error); ok {
-			st := err.StackTrace()
-			return append(args, sprintStackTrace(st))
-		}
 		if err, ok := args[i].(causer); ok {
 			cause := causeWithStackTrace(err.(error))
 			if stErr, ok := cause.(stackTracer); ok {
@@ -249,16 +230,13 @@ func appendStackTraceMaybeArgs(args []interface{}) []interface{} {
 }
 
 // appendStackTraceMaybeKV will append the stacktrace to the KV if one of them
-// is a tracerr.Error
+// is an Error
 func appendStackTraceMaybeKV(msg string, kv []interface{}) string {
 	for i := range kv {
 		if i%2 == 0 {
 			continue
 		}
-		if err, ok := kv[i].(tracerr.Error); ok {
-			st := err.StackTrace()
-			return fmt.Sprintf("%v: %v%v\n", msg, err, sprintStackTrace(st))
-		}
+		// print stack trace here
 	}
 	return msg
 }

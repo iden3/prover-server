@@ -16,7 +16,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	log.SetLevel(log.DebugLevel)
+	log.SetLevelStr(config.Log.Level)
 	// init handlers for router
 
 	var appHandlers = app.Handlers{

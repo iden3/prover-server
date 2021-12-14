@@ -72,7 +72,7 @@ func GenerateZkProof(ctx context.Context, circuitPath string, inputs ZKInputs) (
 	}
 
 	// calculate witness
-	wtnsCmd := exec.Command("snarkjs", "wtns", "calculate", circuitPath+"/circuit.wasm", inputFile.Name(), wtnsFile.Name())
+	wtnsCmd := exec.Command("node", "js/generate_witness.js", circuitPath+"/circuit.wasm", inputFile.Name(), wtnsFile.Name())
 	_, err = wtnsCmd.CombinedOutput()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to calculate witness")

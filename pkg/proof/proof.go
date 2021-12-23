@@ -73,8 +73,9 @@ func GenerateZkProof(ctx context.Context, circuitPath string, inputs ZKInputs) (
 
 	// calculate witness
 	wtnsCmd := exec.Command("node", "js/generate_witness.js", circuitPath+"/circuit.wasm", inputFile.Name(), wtnsFile.Name())
-	_, err = wtnsCmd.CombinedOutput()
+	wtnsOut, err := wtnsCmd.CombinedOutput()
 	if err != nil {
+		log.WithContext(ctx).Errorw("failed to calculate witness", "wtnsOut", string(wtnsOut))
 		return nil, errors.Wrap(err, "failed to calculate witness")
 	}
 	log.WithContext(ctx).Debugw("-- witness calculate completed --")
@@ -103,8 +104,9 @@ func GenerateZkProof(ctx context.Context, circuitPath string, inputs ZKInputs) (
 
 	// generate proof
 	proveCmd := exec.Command("snarkjs", "groth16", "prove", circuitPath+"/circuit_final.zkey", wtnsFile.Name(), proofFile.Name(), publicFile.Name())
-	_, err = proveCmd.CombinedOutput()
+	proveOut, err := proveCmd.CombinedOutput()
 	if err != nil {
+		log.WithContext(ctx).Errorw("failed to generate proof", "proveOut", string(proveOut))
 		return nil, errors.Wrap(err, "failed to generate proof")
 	}
 	log.WithContext(ctx).Debugw("-- groth16 prove completed --")

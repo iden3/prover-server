@@ -44,6 +44,7 @@ ENV PATH=${PATH}:/home/app/node/.npm-global/bin
 
 COPY ./configs      /home/app/configs
 COPY ./circuits     /home/app/circuits
+COPY ./js     /home/app/js
 COPY --from=base /build/prover /home/app/prover
 COPY --from=base /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 

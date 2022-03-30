@@ -5,6 +5,7 @@ server:
 # Config options for prover
 prover:
   circuitsBasePath: "circuits"
-  UseSnarkjs: true
+  useRapidsnark: false
+  rapidsnarkPath: "./build/prove"
 log:
   level: "debug"

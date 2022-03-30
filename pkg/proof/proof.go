@@ -112,11 +112,11 @@ func GenerateZkProof(ctx context.Context, circuitPath string, inputs ZKInputs) (
 	// generate proof
 	var execCommandName string
 	var execCommandParams []string
-	if config.Prover.UseSnarkjs {
+	if config.Prover.UseRapidsnark {
+		execCommandName = config.Prover.RapidsnarkPath
+	} else {
 		execCommandName = "snarkjs"
 		execCommandParams = append(execCommandParams, "groth16", "prove")
-	} else {
-		execCommandName = "./build/prove"
 	}
 	execCommandParams = append(execCommandParams, circuitPath+"/circuit_final.zkey", wtnsFile.Name(), proofFile.Name(), publicFile.Name())
 	proveCmd := exec.Command(execCommandName, execCommandParams...)

@@ -40,6 +40,7 @@ ENV NPM_CONFIG_PREFIX=/home/app/node/.npm-global
 RUN npm install -g snarkjs@latest
 
 # rapidsnark
+RUN apt-get update && apt-get install build-essential -y
 RUN apt install build-essential
 RUN apt-get install libgmp-dev
 RUN apt-get install libsodium-dev
@@ -53,6 +54,7 @@ RUN npx task buildProver
 ENV PATH=${PATH}:/home/app/node/.npm-global/bin
 
 COPY ./configs   /home/app/configs
+COPY ./circuits  /home/app/circuits
 COPY ./js        /home/app/js
 COPY --from=base /build/prover /home/app/prover
 COPY --from=base /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/

@@ -29,7 +29,7 @@ ENV APP_USER=app
 ENV APP_UID=1001
 ENV DOCKER_GID=999
 
-RUN apt-get update && apt-get install -y ca-certificates
+RUN apt-get update && apt-get install -y ca-certificates build-essential libgmp-dev libsodium-dev nasm
 RUN mkdir -p /home/$APP_USER
 RUN adduser -u $APP_UID $APP_USER && chown -R $APP_USER:$APP_USER /home/$APP_USER
 RUN addgroup --system --gid ${DOCKER_GID} docker
@@ -46,11 +46,6 @@ COPY ./circuits  /home/app/circuits
 COPY ./js        /home/app/js
 COPY --from=base /build/prover /home/app/prover
 COPY --from=base /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-RUN apt-get update && apt-get install build-essential -y
-RUN apt install build-essential
-RUN apt-get install libgmp-dev
-RUN apt-get install libsodium-dev
-RUN apt-get install nasm
 
 # rapidsnark
 RUN npm install

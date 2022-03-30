@@ -39,18 +39,6 @@ RUN rm rm -rf /var/lib/apt/lists/*
 ENV NPM_CONFIG_PREFIX=/home/app/node/.npm-global
 RUN npm install -g snarkjs@latest
 
-# rapidsnark
-RUN apt-get update && apt-get install build-essential -y
-RUN apt install build-essential
-RUN apt-get install libgmp-dev
-RUN apt-get install libsodium-dev
-RUN apt-get install nasm \
-RUN npm install
-RUN git submodule init
-RUN git submodule update
-RUN npx task createFieldSources
-RUN npx task buildProver
-
 ENV PATH=${PATH}:/home/app/node/.npm-global/bin
 
 COPY ./configs   /home/app/configs
@@ -58,6 +46,18 @@ COPY ./circuits  /home/app/circuits
 COPY ./js        /home/app/js
 COPY --from=base /build/prover /home/app/prover
 COPY --from=base /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+RUN apt-get update && apt-get install build-essential -y
+RUN apt install build-essential
+RUN apt-get install libgmp-dev
+RUN apt-get install libsodium-dev
+RUN apt-get install nasm
+
+# rapidsnark
+RUN npm install
+RUN git submodule init
+RUN git submodule update
+RUN npx task createFieldSources
+RUN npx task buildProver
 
 RUN chown -R $APP_USER:$APP_USER /home/app
 

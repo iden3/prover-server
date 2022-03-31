@@ -29,7 +29,7 @@ ENV APP_USER=app
 ENV APP_UID=1001
 ENV DOCKER_GID=999
 
-RUN apt-get update && apt-get install -y ca-certificates build-essential libgmp-dev libsodium-dev nasm
+RUN apt-get update && apt-get install -y ca-certificates build-essential libgmp-dev libsodium-dev nasm git
 RUN mkdir -p /home/$APP_USER
 RUN adduser -u $APP_UID $APP_USER && chown -R $APP_USER:$APP_USER /home/$APP_USER
 RUN addgroup --system --gid ${DOCKER_GID} docker
@@ -47,14 +47,16 @@ COPY ./js        /home/app/js
 COPY --from=base /build/prover /home/app/prover
 COPY --from=base /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
+RUN chown -R $APP_USER:$APP_USER /home/app
+
 # rapidsnark
+WORKDIR /rapidsnark
+RUN git clone https://github.com/iden3/rapidsnark.git ./
 RUN npm install
 RUN git submodule init
 RUN git submodule update
 RUN npx task createFieldSources
 RUN npx task buildProver
-
-RUN chown -R $APP_USER:$APP_USER /home/app
 
 USER app:app
 WORKDIR /home/app

@@ -50,6 +50,7 @@ COPY --from=base /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 RUN chown -R $APP_USER:$APP_USER /home/app
 
 # rapidsnark
+RUN mkdir /rapidsnark
 WORKDIR /rapidsnark
 RUN git clone https://github.com/iden3/rapidsnark.git ./
 RUN npm install

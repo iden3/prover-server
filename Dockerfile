@@ -64,3 +64,5 @@ WORKDIR /home/app
 
 # Command to run
 ENTRYPOINT ["/home/app/prover"]
+
+EXPOSE 8002

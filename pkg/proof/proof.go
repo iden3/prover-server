@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/iden3/prover-server/pkg/app/configs"
 	"github.com/iden3/prover-server/pkg/log"
 	"github.com/pkg/errors"
 	"io/ioutil"
@@ -32,13 +31,7 @@ type FullProof struct {
 }
 
 // GenerateZkProof executes snarkjs groth16prove function and returns proof only if it's valid
-func GenerateZkProof(ctx context.Context, circuitPath string, inputs ZKInputs) (*FullProof, error) {
-
-	config, err := configs.ReadConfigFromFile("prover")
-	if err != nil {
-		log.Errorw("cannot read issuer config storage", err)
-		os.Exit(1)
-	}
+func GenerateZkProof(ctx context.Context, circuitPath string, inputs ZKInputs, useRapidsnark bool, rapidsnarkPath string) (*FullProof, error) {
 
 	if path.Clean(circuitPath) != circuitPath {
 		return nil, fmt.Errorf("illegal circuitPath")
@@ -112,8 +105,8 @@ func GenerateZkProof(ctx context.Context, circuitPath string, inputs ZKInputs) (
 	// generate proof
 	var execCommandName string
 	var execCommandParams []string
-	if config.Prover.UseRapidsnark {
-		execCommandName = config.Prover.RapidsnarkPath
+	if useRapidsnark {
+		execCommandName = rapidsnarkPath
 	} else {
 		execCommandName = "snarkjs"
 		execCommandParams = append(execCommandParams, "groth16", "prove")

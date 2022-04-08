@@ -5,7 +5,7 @@ server:
 # Config options for prover
 prover:
   circuitsBasePath: "circuits"
-  useRapidsnark: false
-  rapidsnarkPath: "prover"
+  useRapidsnark: true
+  rapidsnarkPath: "rapidsnark"
 log:
   level: "debug"

@@ -107,7 +107,7 @@ func GenerateZkProof(ctx context.Context, circuitPath string, inputs ZKInputs, u
 	var execCommandName string
 	var execCommandParams []string
 	if useRapidsnark {
-		execCommandName = "prover"
+		execCommandName = "rapidsnark"
 	} else {
 		execCommandName = "snarkjs"
 		execCommandParams = append(execCommandParams, "groth16", "prove")

@@ -58,7 +58,7 @@ func (h *ZKHandler) GenerateProof(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fullProof, err := proof.GenerateZkProof(r.Context(), circuitPath, req.Inputs, h.ProverConfig.UseRapidsnark, h.ProverConfig.RapidsnarkPath)
+	fullProof, err := proof.GenerateZkProof(r.Context(), circuitPath, req.Inputs, h.ProverConfig.UseRapidsnark)
 
 	if err != nil {
 		rest.ErrorJSON(w, r, http.StatusInternalServerError, err, "can't generate proof", 0)

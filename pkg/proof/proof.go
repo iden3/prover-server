@@ -31,7 +31,7 @@ type FullProof struct {
 }
 
 // GenerateZkProof executes snarkjs groth16prove function and returns proof only if it's valid
-func GenerateZkProof(ctx context.Context, circuitPath string, inputs ZKInputs, useRapidsnark bool, rapidsnarkPath string) (*FullProof, error) {
+func GenerateZkProof(ctx context.Context, circuitPath string, inputs ZKInputs, useRapidsnark bool) (*FullProof, error) {
 
 	if path.Clean(circuitPath) != circuitPath {
 		return nil, fmt.Errorf("illegal circuitPath")
@@ -106,7 +106,7 @@ func GenerateZkProof(ctx context.Context, circuitPath string, inputs ZKInputs, u
 	var execCommandName string
 	var execCommandParams []string
 	if useRapidsnark {
-		execCommandName = rapidsnarkPath
+		execCommandName = "prover"
 	} else {
 		execCommandName = "snarkjs"
 		execCommandParams = append(execCommandParams, "groth16", "prove")

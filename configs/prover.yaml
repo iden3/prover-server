@@ -6,6 +6,5 @@ server:
 prover:
   circuitsBasePath: "circuits"
   useRapidsnark: false
-  rapidsnarkPath: "/rapidsnark/build/prover"
 log:
   level: "debug"

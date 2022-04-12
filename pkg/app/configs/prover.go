@@ -22,7 +22,6 @@ type Config struct {
 type ProverConfig struct {
 	CircuitsBasePath string `mapstructure:"circuitsBasePath"`
 	UseRapidsnark    bool   `mapstructure:"useRapidsnark"`
-	RapidsnarkPath   string `mapstructure:"rapidsnarkPath"`
 }
 
 // ReadConfigFromFile parse config file

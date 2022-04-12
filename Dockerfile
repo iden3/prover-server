@@ -58,6 +58,7 @@ RUN git submodule init
 RUN git submodule update
 RUN npx task createFieldSources
 RUN npx task buildProver
+ENV PATH=${PATH}:/rapidsnark/build/prover
 
 USER app:app
 WORKDIR /home/app

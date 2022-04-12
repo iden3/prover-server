@@ -39,17 +39,6 @@ COPY ./js        /home/app/js
 
 RUN chown -R $APP_USER:$APP_USER /home/app
 
-# rapidsnark
-RUN mkdir /rapidsnark
-WORKDIR /rapidsnark
-RUN git clone https://github.com/iden3/rapidsnark.git ./
-RUN npm install
-RUN git submodule init
-RUN git submodule update
-RUN npx task createFieldSources
-RUN npx task buildProver
-ENV PATH=${PATH}:/rapidsnark/build/prover
-
 USER app:app
 WORKDIR /home/app
 

@@ -37,6 +37,19 @@ Content-Type: application/json
 }
 ```
 
+## Docker images
+
+Build and run container with snarkjs prover:
+```bash
+docker build -t prover-server .
+docker run -it -p 8002:8002 prover-server
+```
+
+Build and run container with rapidsnark prover:
+```bash
+docker build -t prover-server-rapidsnark -f Dockerfile-rapidsnark .
+docker run -it -p 8002:8002 prover-server-rapidsnark
+```
 
 ## License
 

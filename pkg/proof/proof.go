@@ -4,13 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/iden3/prover-server/pkg/log"
-	"github.com/pkg/errors"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"path"
 	"strings"
+
+	"github.com/iden3/prover-server/pkg/log"
+	"github.com/pkg/errors"
 )
 
 // ZKInputs are inputs for proof generation
@@ -113,6 +114,7 @@ func GenerateZkProof(ctx context.Context, circuitPath string, inputs ZKInputs, u
 	}
 	execCommandParams = append(execCommandParams, circuitPath+"/circuit_final.zkey", wtnsFile.Name(), proofFile.Name(), publicFile.Name())
 	proveCmd := exec.Command(execCommandName, execCommandParams...)
+	log.WithContext(ctx).Debugf("used prover: %s", execCommandName)
 	proveOut, err := proveCmd.CombinedOutput()
 	if err != nil {
 		log.WithContext(ctx).Errorw("failed to generate proof", "proveOut", string(proveOut))

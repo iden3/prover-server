@@ -21,6 +21,7 @@ type Config struct {
 // ProverConfig contains only base path to circuits folder
 type ProverConfig struct {
 	CircuitsBasePath string `mapstructure:"circuitsBasePath"`
+	UseRapidsnark    bool   `mapstructure:"useRapidsnark"`
 }
 
 // ReadConfigFromFile parse config file

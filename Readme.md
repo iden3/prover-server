@@ -1,12 +1,10 @@
 ## Prover Server 
-Prover Server is a REST API Wrapper & golang binding for [SnarkJS](https://github.com/iden3/snarkjs)
+Prover Server is a REST API Wrapper for [go-rapidsnark](https://github.com/iden3/go-rapidsnark)
 
 List of implemented features:
 
 * Generate proof
-
-### Requirements
-* [SnarkJS](https://github.com/iden3/snarkjs)
+* Verify proof
 
 ### Installation
 
@@ -33,22 +31,16 @@ POST /api/v1/proof/generate
 Content-Type: application/json
 {
   "inputs": {...}, // circuit specific inputs
-  "circuit_name": "..." // name of directory 
+  "circuit_name": "..." // name of a directory containing circuit_final.zkey, verification_key.json and circuit.wasm files
 }
 ```
 
 ## Docker images
 
-Build and run container with snarkjs prover:
+Build and run container:
 ```bash
 docker build -t prover-server .
 docker run -it -p 8002:8002 prover-server
-```
-
-Build and run container with rapidsnark prover:
-```bash
-docker build -t prover-server-rapidsnark -f Dockerfile-rapidsnark .
-docker run -it -p 8002:8002 prover-server-rapidsnark
 ```
 
 ## License

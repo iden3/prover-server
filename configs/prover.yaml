@@ -5,6 +5,5 @@ server:
 # Config options for prover
 prover:
   circuitsBasePath: "circuits"
-  useRapidsnark: false
 log:
   level: "debug"

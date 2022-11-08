@@ -18,7 +18,7 @@ func TestGenerateZkProof(t *testing.T) {
 	inputs["claimsTreeRoot"] = "11255515925828835914226833076080606304832663418205815330307466449501910557227"
 	inputs["newIdState"] = "7004464227089968436898203591134773465254478000560982809053917599849148691274"
 
-	proof, err := GenerateZkProof(context.TODO(), "../../circuits/idState", inputs)
+	proof, err := GenerateZkProof(context.TODO(), "../../circuits/idState", inputs, false, "")
 	require.Empty(t, err)
 
 	proofJSON, _ := json.Marshal(proof)

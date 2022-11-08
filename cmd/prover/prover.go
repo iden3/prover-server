@@ -1,18 +1,19 @@
 package main
 
 import (
+	"os"
+
 	"github.com/iden3/prover-server/pkg/app"
 	"github.com/iden3/prover-server/pkg/app/configs"
 	"github.com/iden3/prover-server/pkg/app/handlers"
 	"github.com/iden3/prover-server/pkg/log"
-	"os"
 )
 
 func main() {
 
 	config, err := configs.ReadConfigFromFile("prover")
 	if err != nil {
-		log.Errorw("cannot read issuer config storage", err)
+		log.Errorw("cannot read prover config storage", err)
 		os.Exit(1)
 	}
 

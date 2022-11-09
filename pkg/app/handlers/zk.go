@@ -61,7 +61,7 @@ func (h *ZKHandler) GenerateProof(w http.ResponseWriter, r *http.Request) {
 	fullProof, err := proof.GenerateZkProof(r.Context(), circuitPath, req.Inputs, h.ProverConfig.UseRapidsnark)
 
 	if err != nil {
-		rest.ErrorJSON(w, r, http.StatusInternalServerError, err, "can't generate proof", 0)
+		rest.ErrorJSON(w, r, http.StatusInternalServerError, err, "can't generate identifier", 0)
 		return
 	}
 

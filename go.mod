@@ -6,9 +6,10 @@ require (
 	github.com/go-chi/chi v1.5.4
 	github.com/go-chi/cors v1.2.0
 	github.com/go-chi/render v1.0.1
-	github.com/iden3/go-rapidsnark/prover v0.0.5
-	github.com/iden3/go-rapidsnark/verifier v0.0.2
-	github.com/iden3/go-rapidsnark/witness v0.0.1
+	github.com/iden3/go-rapidsnark/prover v0.0.6
+	github.com/iden3/go-rapidsnark/types v0.0.2
+	github.com/iden3/go-rapidsnark/verifier v0.0.3
+	github.com/iden3/go-rapidsnark/witness v0.0.3
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.7.2
@@ -17,11 +18,10 @@ require (
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/ethereum/go-ethereum v1.10.24 // indirect
+	github.com/ethereum/go-ethereum v1.10.26 // indirect
 	github.com/fsnotify/fsnotify v1.4.7 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/iden3/go-iden3-crypto v0.0.13 // indirect
-	github.com/iden3/go-rapidsnark/types v0.0.1 // indirect
 	github.com/magiconair/properties v1.8.1 // indirect
 	github.com/mitchellh/mapstructure v1.4.1 // indirect
 	github.com/pelletier/go-toml v1.2.0 // indirect

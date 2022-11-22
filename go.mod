@@ -6,7 +6,7 @@ require (
 	github.com/go-chi/chi v1.5.4
 	github.com/go-chi/cors v1.2.0
 	github.com/go-chi/render v1.0.1
-	github.com/iden3/go-rapidsnark/prover v0.0.6
+	github.com/iden3/go-rapidsnark/prover v0.0.7
 	github.com/iden3/go-rapidsnark/types v0.0.2
 	github.com/iden3/go-rapidsnark/verifier v0.0.3
 	github.com/iden3/go-rapidsnark/witness v0.0.3

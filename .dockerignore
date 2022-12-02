@@ -1,1 +1,4 @@
+.git
 testdata
+**/*.zip
+**/*.zkey.json

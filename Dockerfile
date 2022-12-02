@@ -1,9 +1,7 @@
 # Build prover-server
-FROM golang:1.17-alpine as base
+FROM golang:1.18.2-bullseye as base
 
 WORKDIR /build
-
-RUN apk add --no-cache --update git
 
 COPY go.mod ./
 COPY go.sum ./
@@ -12,37 +10,28 @@ RUN go mod download
 COPY ./cmd ./cmd
 COPY ./pkg ./pkg
 
-RUN CGO_ENABLED=0 go build -o ./prover ./cmd/prover/prover.go
+RUN go build -o ./prover ./cmd/prover/prover.go
+RUN go build -tags="rapidsnark_noasm" -o ./prover_noasm ./cmd/prover/prover.go
 
 
 # Main image
-FROM node:16
+FROM alpine:3.16.0
 
-ENV APP_USER=app
-ENV APP_UID=1001
-
-RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
-
-RUN adduser -u $APP_UID $APP_USER --disabled-password --gecos "First Last,RoomNumber,WorkPhone,HomePhone"
-
-ENV NPM_CONFIG_PREFIX=/home/app/node/.npm-global
-RUN npm install -g snarkjs@latest
-
-ENV PATH=${PATH}:/home/app/node/.npm-global/bin
+RUN apk add --no-cache libstdc++ gcompat libgomp
 
 COPY --from=base /build/prover /home/app/prover
-#COPY --from=base /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+COPY --from=base /build/prover_noasm /home/app/prover_noasm
+COPY --from=base /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+COPY --from=base "/go/pkg/mod/github.com/wasmerio/wasmer-go@v1.0.4/wasmer/packaged/lib/linux-amd64/libwasmer.so" \
+"/go/pkg/mod/github.com/wasmerio/wasmer-go@v1.0.4/wasmer/packaged/lib/linux-amd64/libwasmer.so"
+COPY docker-entrypoint.sh /usr/local/bin/
 
 COPY ./configs   /home/app/configs
 COPY ./circuits  /home/app/circuits
-COPY ./js        /home/app/js
 
-RUN chown -R $APP_USER:$APP_USER /home/app
-
-USER app:app
 WORKDIR /home/app
 
 # Command to run
-ENTRYPOINT ["/home/app/prover"]
+ENTRYPOINT ["docker-entrypoint.sh"]
 
 EXPOSE 8002

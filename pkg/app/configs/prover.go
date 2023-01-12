@@ -1,13 +1,12 @@
 package configs
 
 import (
-	"strings"
-
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
+	"strings"
 )
 
-// Config structure represent yaml config for prover server
+// Config structure represent yaml config for prover serever
 type Config struct {
 	Server struct {
 		Port int    `mapstructure:"port"`
@@ -22,6 +21,7 @@ type Config struct {
 // ProverConfig contains only base path to circuits folder
 type ProverConfig struct {
 	CircuitsBasePath string `mapstructure:"circuitsBasePath"`
+	UseRapidsnark    bool   `mapstructure:"useRapidsnark"`
 }
 
 // ReadConfigFromFile parse config file

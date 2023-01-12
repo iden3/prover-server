@@ -2,11 +2,10 @@ package handlers
 
 import (
 	"fmt"
+	"github.com/iden3/prover-server/pkg/log"
 	"net/http"
 	"os"
 	"path"
-
-	"github.com/iden3/prover-server/pkg/log"
 
 	"github.com/go-chi/render"
 	"github.com/iden3/prover-server/pkg/app/configs"
@@ -59,7 +58,7 @@ func (h *ZKHandler) GenerateProof(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fullProof, err := proof.GenerateZkProof(r.Context(), circuitPath, req.Inputs)
+	fullProof, err := proof.GenerateZkProof(r.Context(), circuitPath, req.Inputs, h.ProverConfig.UseRapidsnark)
 
 	if err != nil {
 		rest.ErrorJSON(w, r, http.StatusInternalServerError, err, "can't generate identifier", 0)
@@ -105,8 +104,6 @@ func getValidatedCircuitPath(circuitBasePath, circuitName string) (circuitPath s
 	if path.Clean(circuitPath) != circuitPath {
 		return "", fmt.Errorf("illegal circuitPath")
 	}
-
-	fmt.Println(circuitPath)
 
 	_, err = os.Stat(circuitPath)
 	if os.IsNotExist(err) {

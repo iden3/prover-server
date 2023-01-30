@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path"
 
 	"github.com/iden3/go-rapidsnark/prover"
@@ -39,7 +39,7 @@ func GenerateZkProof(ctx context.Context, circuitPath string, inputs ZKInputs) (
 		return nil, fmt.Errorf("illegal circuitPath")
 	}
 
-	wasmBytes, err := ioutil.ReadFile(circuitPath + "/circuit.wasm")
+	wasmBytes, err := os.ReadFile(circuitPath + "/circuit.wasm")
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to read wasm file")
 	}
@@ -66,9 +66,7 @@ func GenerateZkProof(ctx context.Context, circuitPath string, inputs ZKInputs) (
 	}
 	log.WithContext(ctx).Debugw("-- witness calculate completed --")
 
-	//fmt.Println(wtns)
-
-	zkeyBytes, err := ioutil.ReadFile(circuitPath + "/circuit_final.zkey")
+	zkeyBytes, err := os.ReadFile(circuitPath + "/circuit_final.zkey")
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to read zkey file")
 	}
@@ -79,7 +77,7 @@ func GenerateZkProof(ctx context.Context, circuitPath string, inputs ZKInputs) (
 		return nil, errors.Wrap(err, "failed to generate proof")
 	}
 
-	vkeyBytes, err := ioutil.ReadFile(circuitPath + "/verification_key.json")
+	vkeyBytes, err := os.ReadFile(circuitPath + "/verification_key.json")
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to read verification_key file")
 	}
@@ -100,7 +98,7 @@ func VerifyZkProof(ctx context.Context, circuitPath string, zkp *FullProof) erro
 		return fmt.Errorf("illegal circuitPath")
 	}
 
-	vkeyBytes, err := ioutil.ReadFile(circuitPath + "/verification_key.json")
+	vkeyBytes, err := os.ReadFile(circuitPath + "/verification_key.json")
 	if err != nil {
 		return errors.Wrap(err, "failed to read verification_key file")
 	}

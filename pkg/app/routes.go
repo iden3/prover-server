@@ -51,7 +51,6 @@ func (s *Handlers) Routes() chi.Router {
 			rr.Post("/generate", s.ZKHandler.GenerateProof)
 			rr.Post("/verify", s.ZKHandler.VerifyProof)
 		})
-
 	})
 
 	return r
